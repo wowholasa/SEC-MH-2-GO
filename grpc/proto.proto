@@ -17,9 +17,9 @@ service PatientShareSendingService {
 }
 
 message Aggregation {
-  int64 aggregatedShare = 1;
+  int64 aggregation = 1;
 }
 
-service AggrgationSendingService {
+service AggregationSendingService {
   rpc SendAggregation(Aggregation) returns (Acknowledge) {};
 }

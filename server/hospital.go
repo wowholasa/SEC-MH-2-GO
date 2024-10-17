@@ -25,19 +25,25 @@ func (h *hospital) SendAggregation(ctx context.Context, msg *pb.Aggregation) (*p
 	fmt.Println("Aggregation: ", msg.Aggregation)
 
 	h.receivedShares = append(h.receivedShares, msg.Aggregation)
+
+	if len(h.receivedShares) == 3 {
+		fmt.Println("Received all shares, calculating sum")
+		fmt.Println("Sum of shares: ", h.SumAggregations())
+	}
+
 	return &pb.Acknowledge{Message: "Received Aggregation, and added it to list."}, nil
 }
 
 func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	// Load certificate of the CA who signed server's certificate
-	pemServerCA, err := os.ReadFile("cert/ca-cert.pem")
+	CACert, err := os.ReadFile("cert/ca-cert.pem")
 	if err != nil {
 		return nil, err
 	}
 
 	// Create a certificate pool from the certificate authority
 	certPool := x509.NewCertPool()
-	if !certPool.AppendCertsFromPEM(pemServerCA) {
+	if !certPool.AppendCertsFromPEM(CACert) {
 		return nil, fmt.Errorf("failed to add server CA's certificate")
 	}
 
@@ -70,7 +76,14 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	tlsCredentials, err := loadTLSCredentials()
+	if err != nil {
+		log.Fatalf("Failed to load TLS credentials: %v", err)
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc.Creds(tlsCredentials),
+	)
 	pb.RegisterAggregationSendingServiceServer(grpcServer, &hospital{})
 
 	fmt.Println("Hospital server running on port :5454")

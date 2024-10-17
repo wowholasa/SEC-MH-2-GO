@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package main;
 
-option go_package = "grpc/proto"
+option go_package = "grpc/proto";
 
 message Share {
   int64 shareOfSecret = 1;
@@ -20,6 +20,6 @@ message Aggregation {
   int64 aggregatedShare = 1;
 }
 
-serve AggrgationSendingService {
+service AggrgationSendingService {
   rpc SendAggregation(Aggregation) returns (Acknowledge) {};
 }

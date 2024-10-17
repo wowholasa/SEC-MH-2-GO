@@ -207,6 +207,7 @@ func main() {
 		patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[1], 1)
 	}
 
+	//// I just really wish I could get this to work
 	// patient.listOfReceivedShares = append(patient.listOfReceivedShares, patient.listOfInitialShares[int(*patientID)])
 	// for i := 0; i < 3; i++ {
 	// 	if i == int(*patientID) {

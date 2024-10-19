@@ -25,8 +25,8 @@ type patient struct {
 	addressPort          string
 	otherPatientAdresses map[int64]string
 	serverAddress        string
-	listOfInitialShares  []int64
-	listOfReceivedShares []int64
+	initialShares        []int64
+	receivedShares       []int64
 	input                int64
 }
 
@@ -36,13 +36,13 @@ func (p *patient) calculateInitialShares() {
 
 	share3 := p.input - share1 - share2
 
-	p.listOfInitialShares = []int64{share1, share2, share3}
+	p.initialShares = []int64{share1, share2, share3}
 	return
 }
 
 func (p *patient) aggregateShares() int64 {
 	var aggregation int64
-	for _, share := range p.listOfReceivedShares {
+	for _, share := range p.receivedShares {
 		aggregation += share
 	}
 	return aggregation
@@ -106,9 +106,9 @@ func (p *patient) startPatientServer(wg *sync.WaitGroup) {
 
 func (p *patient) SendShare(ctx context.Context, msg *pb.Share) (*pb.Acknowledge, error) {
 	log.Printf("Received share from patient %d\n", msg.ShareOfSecret)
-	p.listOfReceivedShares = append(p.listOfReceivedShares, msg.ShareOfSecret)
+	p.receivedShares = append(p.receivedShares, msg.ShareOfSecret)
 
-	if len(p.listOfReceivedShares) == 3 {
+	if len(p.receivedShares) == 3 {
 		aggregation := p.aggregateShares()
 		p.sendAggregationToHospital(context.Background(), aggregation)
 	}
@@ -178,8 +178,8 @@ func main() {
 		addressPort:          fmt.Sprintf("localhost:%d", port),
 		otherPatientAdresses: otherPatients,
 		serverAddress:        "localhost:5454",
-		listOfInitialShares:  []int64{},
-		listOfReceivedShares: []int64{},
+		initialShares:        []int64{},
+		receivedShares:       []int64{},
 		input:                *input,
 	}
 
@@ -192,31 +192,31 @@ func main() {
 	time.Sleep(10 * time.Second)
 
 	if patient.patientID == 0 {
-		patient.listOfReceivedShares = append(patient.listOfReceivedShares, patient.listOfInitialShares[0])
-		time.Sleep(10 * time.Second)
-		patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[1], 1)
-		patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[2], 2)
+		patient.receivedShares = append(patient.receivedShares, patient.initialShares[0])
+		time.Sleep(10 * time.Second) // This is a way to make sure that the other patients are ready to receive the shares
+		patient.sendSharesToOtherPatients(context.Background(), patient.initialShares[1], 1)
+		patient.sendSharesToOtherPatients(context.Background(), patient.initialShares[2], 2)
 	} else if patient.patientID == 1 {
-		patient.listOfReceivedShares = append(patient.listOfReceivedShares, patient.listOfInitialShares[1])
-		time.Sleep(10 * time.Second)
-		patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[0], 0)
-		patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[2], 2)
+		patient.receivedShares = append(patient.receivedShares, patient.initialShares[1])
+		time.Sleep(10 * time.Second) // This is a way to make sure that the other patients are ready to receive the shares
+		patient.sendSharesToOtherPatients(context.Background(), patient.initialShares[0], 0)
+		patient.sendSharesToOtherPatients(context.Background(), patient.initialShares[2], 2)
 	} else if patient.patientID == 2 {
-		patient.listOfReceivedShares = append(patient.listOfReceivedShares, patient.listOfInitialShares[2])
-		patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[0], 0)
-		patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[1], 1)
+		patient.receivedShares = append(patient.receivedShares, patient.initialShares[2])
+		patient.sendSharesToOtherPatients(context.Background(), patient.initialShares[0], 0)
+		patient.sendSharesToOtherPatients(context.Background(), patient.initialShares[1], 1)
 	}
 
 	//// I just really wish I could get this to work
-	// patient.listOfReceivedShares = append(patient.listOfReceivedShares, patient.listOfInitialShares[int(*patientID)])
+	// patient.receivedShares = append(patient.receivedShares, patient.initialShares[int(*patientID)])
 	// for i := 0; i < 3; i++ {
 	// 	if i == int(*patientID) {
 	// 		continue
 	// 	}
-	// 	patient.sendSharesToOtherPatients(context.Background(), patient.listOfInitialShares[i], int64(i))
+	// 	patient.sendSharesToOtherPatients(context.Background(), patient.initialShares[i], int64(i))
 	// }
 
-	// if len(patient.listOfReceivedShares) == 3 {
+	// if len(patient.receivedShares) == 3 {
 	// 	aggregation := patient.aggregateShares()
 	// 	patient.sendAggregationToHospital(context.Background(), aggregation)
 	// }

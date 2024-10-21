@@ -8,13 +8,13 @@ Then run the command: `go mod tidy`.
 
 Next, open four separate terminals, one for the hospital and three terminals for the different clients:
 
-1. **Hospital**: `go run ./server/hospital.go`.
+1. **Hospital**: `go run ./hospital/hospital.go`.
 
-2. **Client0**: `go run ./client/patient.go -id=0 -input=1`.
+2. **Client0**: `go run ./patient/patient.go -id=0 -input=1`.
 
-3. **Client1**: `go run ./client/patient.go -id=1 -input=2`.
+3. **Client1**: `go run ./patient/patient.go -id=1 -input=2`.
 
-4. **Client2**: `go run ./client/patient.go -id=2 -input=3`.
+4. **Client2**: `go run ./patient/patient.go -id=2 -input=3`.
 
 You will be able to follow the progress of each process in their terminal, and the program will be done once the hospital writes out: `Sum of shares: 6`.
 

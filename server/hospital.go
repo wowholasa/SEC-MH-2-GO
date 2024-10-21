@@ -15,11 +15,13 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+// Struct to define a hospital
 type hospital struct {
 	pb.UnimplementedAggregationSendingServiceServer
 	receivedShares []int64
 }
 
+// Function to receive the aggregation from a patient
 func (h *hospital) SendAggregation(ctx context.Context, msg *pb.Aggregation) (*pb.Acknowledge, error) {
 	fmt.Println("Received aggregation from patient")
 	fmt.Println("Aggregation: ", msg.Aggregation)
@@ -34,6 +36,8 @@ func (h *hospital) SendAggregation(ctx context.Context, msg *pb.Aggregation) (*p
 	return &pb.Acknowledge{Message: "Received Aggregation, and added it to list."}, nil
 }
 
+// Function to load the TLS credentials for the hospital
+// Load's the hospital's certificate and private key and defines the CAs which the hospital trusts when patients connect to it.
 func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	// Load certificate of the CA who signed server's certificate
 	CACert, err := os.ReadFile("cert/ca-cert.pem")
@@ -62,6 +66,7 @@ func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	return credentials.NewTLS(config), nil
 }
 
+// Function to calculate the sum of the shares received from the patients
 func (h *hospital) SumAggregations() int64 {
 	var sum int64
 	for _, share := range h.receivedShares {
@@ -70,6 +75,7 @@ func (h *hospital) SumAggregations() int64 {
 	return sum
 }
 
+// Main function to start the hospital server
 func main() {
 	listen, err := net.Listen("tcp", ":5454") // Listen on port 5454
 	if err != nil {
